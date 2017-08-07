@@ -5,10 +5,11 @@
 
 1. [AWS S3 FAQ](https://aws.amazon.com/s3/faqs/)
 2. [AWS EC2 FAQ](https://aws.amazon.com/ec2/faqs/)
-3. [AWS ELB Classic FAQ](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
-  
+3. [AWS SQS FAQ](https://aws.amazon.com/sqs/faqs/)
+4. [AWS ELB Classic FAQ](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
+5. [AWS VPC Security Groups](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)  
         
-========
+------
 
 ##### General notes on AWS
 
@@ -109,7 +110,7 @@ and impractical at large scale
    3. Snowmobile - peta/exabyte scale mobile AWS datacenter on truck.     
              
         
-========
+------
 
 ##### AWS Compute
         
@@ -184,6 +185,7 @@ and impractical at large scale
 2. Security group ingress rules are automatically mirrored to egress - unlike VPC. 
 3. All traffic is blocked by default; you can only PERMIT traffic.  You cannot DENY specific traffic.
 4. 1 SG can apply to an infinity of EC2 instances
+5. An instance can have 5 SGs bound to it
 
 ###### ALB And Health Checks
 
@@ -193,6 +195,8 @@ and impractical at large scale
 3. EC2 instances monitored by an ELB are reported as InService or OutOfService.
 4. Health checks are conducted by connecting to the instances within an ALB or CLB.
 5. ELBs are always addressed by DNS name; no IPv4 address is published for them.
+6. It's advisable to have an ALB in two or more subnets across different AZ's to provide redundancy in case an AZ
+goes offline.  This is especially true for public ALBs - you should have two different public subnets in different AZs
 
 ###### Cloudwatch
 
@@ -285,12 +289,10 @@ and impractical at large scale
 3. Storage is self-healing
 4. Two types of replicas
    1. Aurora replicas (up to 15) - fail over automatically
-   2. Mysql Read Replicas (up to 5) - will require intervention to fail over
-   
-    
+   2. Mysql Read Replicas (up to 5) - will require intervention to fail over  
  
-========
-
+------
+##### AWS Networking
 ###### Route 53
 
 1. Route53 is a GLOBAL service
@@ -325,17 +327,20 @@ and impractical at large scale
     
 ###### VPC
 
-1. VPC Creation
+1. VPC acts like a logical datacenter in a region - cannot span regions
+2. Consist of Internet Gateway or VPG, Route Tables, ACLS, Subnets and SG's
+3. VPC Creation
     1. Cannot create a CIDR block greater than /16 for a VPC
     2. When a VPC is created, a MAIN route table is created with it.
     3. When a VPC is created, a default security group is created for the VPC
     4. When a VPC is created, a default Network ACL is created for the VPC
-2. Subnets are bound to a single AZ within a region. ACLs and Security Groups can span AZs.  Subnets are associated
+4. Subnets are bound to a single AZ within a region. ACLs and Security Groups can span AZs.  Subnets are associated
    to the MAIN route table by default on creation.
-3. 3 addresses are reserved by default in a subnet, not including .0 and .255 
+5. 3 addresses are reserved by default in a subnet, not including .0 and .255 
    a.b.c.1 is reserved for the VPC router.  a.b.c.2 is reserved for DNS and a.b.c.3 is reserved for future use.
    .255 is broadcast, but broadcast isn't possible in VPC so this is simply reserved.
-4. To connect a VPC to the internet you need to create an Internet Gateway.  Only one IG can be bound to a VPC.
+6. To connect a VPC to the internet you need to create an Internet Gateway.  Only one IG can be bound to a VPC.
+7. VPC can peer to other VPCs in different accounts.  NO transitive VPC peering though. VPCs must peer directly with one another
 
 ###### NAT Instances and NAT Gateways
 
@@ -343,11 +348,111 @@ and impractical at large scale
 2. NAT instances are provisioned from specific NAT Amis
 3. EC2 instances have a default Source/Dest check which checks that traffic to them is either for or from them.  A NAT instance
 needs to be able to route traffic so this setting needs to be disabled.
-4. NAT Instances are configured as the targets of routing tables in much the same way as IG's are
+4. NAT Instances are configured as the targets of routing tables in much the same way as IG's are. 
+5. NAT instances must be in a public subnet and must have an elastic IP allocated to them.
+6. NAT instance traffic max throughput depends on instance size
+7. NAT instances require scripts to do failover in HA
+8. Private subnets must have a route to the NAT instance in order to see the public internet through them.
+9. NAT Gateway is always deployed into subnets which are or can face PUBLIC internet - it is automatically given a public ip address
+10 . NAT Gateway doesn't require a SG or disable of source/dest traffic check
+                                     
+###### Network Access Control Lists
 
-5. NAT Gateway is always deployed into subnets which are or can face PUBLIC internet.  
-6. NAT Gateway doesn't require a SG or disable of source/dest traffic check
+1. Operates at the subnet level; unlike SGs ACLS support both allow and deny rules.   SGs can only PERMIT, everything is denied by default.
+2. Unlike SGs, ACLs are stateless.  Both incoming and outgoing traffic has to be explicitly allowed; it is not implicitly
+   allowed like SGs.
+3. Rules are processed in numerical order to decide whether to permit or deny traffic.   
+4. Automatically enacted on all instances in a subnet that has an ACL defined, unlike SGs which need to be explicitly added
+    to instances
+5. A VCP comes with a default ACL which allows all inbound and outbound traffic by default.  Subnets are associated with this
+default ACL unless they are assigned to a custom ACL.  Subnets must always be a member of one and only one ACL. 
+6. A custom ACL denies all inbound and outbound traffic by default when created.
+7. An ACL can apply to multiple subnets in multiple AZs but a subnet can only be associated with a single ACL
+8. Amazon recommend rule numbers incrementing in hundreds e.g 100,200 etc - this gives space to make later amendments.        
+9. Ephemeral ports - you need to open ephemeral ports (1024-65535) if you for e.g have a webserver on an instance.
+10. Remember that rules are evaluated in order.  If you're going to block specific ip addresses or ports you need to do this
+   BEFORE you have any global permissive rules for e.g
+   
+###### Bastions vs NATs
+   
+1. NAT routes internet traffic from public subnet to private subnets
+2. BASTION host permits ssh connections from public internet, and from there can act as a staging host to jump to internal servers
 
-                                       
+###### Resilient architecture
+1. Always have at least two subnets in two different AZs
+2. Use autoscale groups with a min size of 2
+3. Use Route53 with round robin or health-check routing to fail over
+4. NAT instances are tricky to HA - you need one in each public subnet, with different ips, and scripts to fail over between them.
+NAT Gateway is a better solution.
+
+###### VPC Flow Logs   
+  
+1. Permit you to capture traffic logs a la wiresark, tcpdump
+2. Can then push data to CloudWatch for metrics and analysis
+
+------
+##### AWS Application Services
+###### SQS
+
+1. Oldest AWS service
+2. Visibility Timeout window - message processed by one client is invisible to other clients till timeout expires.
+3. 256kb payload size
+4. Queue acts as a buffer
+5. Autoscaling groups can be configured to provision based on SQS queue size
+6. Standard Queues and FIFO Queues - FIFO are new.
+    6.1 Standard (Default) queues - unlimited Tx/s, messages guaranteed at least once, more than one copy might be delivered out of order - no guarantees of ordering.
+    6.2 FIFO - guaranteed delivery order.  Remains available until consumer deletes message. Limited to 300 Tx/s
+7. SQS is pull based, not push based.  256k max payload, Message TTL from 1 minute to 14 days, defaults 4 days
+8. Max Visibility Time Out is 12 hours     
+9. SQS Long Polling - attempt to get message; block and wait for message
+10. SQS maintains no application state; app needs to track this
+    
+###### SWF - Simple Workflow Service
+
+1. Workers are applications that interact with SWF to get tasks, process tasks and return results
+2. Starter is the application that initiates an SWS process e.g your website.  
+   Decider is the orcestrator : controls scheduling, concurrency and ordering based on app logic.
+   Activity works perform the work associated with each task.
+3. SWF guarantees tasks assigned once, never duplicated 
+4. SWF maintains app state so workers and deciders don't need to and can scale quickly as a result
+5. Domains isolate units for a work flow / process into logical groups
+6. Max Workflow TTL is a year, expressed in seconds
+7. SWF presents a task-orientated API whereas SQS presents a message-orientated API
+
+###### SNS
+    
+1. Can deliver push notifications to many cloud systems; also SMS, SQS or HTTP endpoints
+2. Messages are stored redundantly across multiple AZs
+3. Can spool to multiple recipients via topics.  Topics can also spool to multiple different endpoint types.
+4. Instantaneous, push-based delivery.  Simple APIS, flexible message delivery. 
+5. Pay as you go cost
+6. SQS is poll, SNS is push
+
+###### API Gateway
+
+1. API-G is a facade that can provide serverless computing through lambda etc
+2. API-G supports caching and throttling
+3. API-G scales automatically with load
+4. API-G can log to CloudWatch
+
+###### Kinesis
+
+1. Kinesis is a sink for Streaming Data - permits analysis and creation of custom apps based on the data
+2. Kinesis core services
+    1. Kinesis Streams
+        1. Data stored for 24h (default) -> 7 days(max). Data is sharded.  
+        2. Consumers (Ec2 instances) run transformations against the Stream data
+        3. Consumers forward calculations on for persistance elsewhere
+        4. Data capacity of Kinesis stream is sum(capacity of shards in stream)
+    2. Kinesis Firehose
+        1. Automated aggregation and processing of data - persists direct to SE, analysis etc is optional.
+        2. Firehose has no data persistence itself.
+        3. Data is either analysed vi Lambda, or else persisted straight to S3.
+        4. Firehose can write Kinesis data into Elastic Search
+    3. Kinesis Analytics
+        1. Permits you to run SQL queries on data within Firehose or Streams; queried data can be stored to S3, RedShift or ElasticSearch
+3. Shards implies Streams as Firehose has no shards.  Automatic Analysis via Lambda implies FireHose
+        
+        
     
     
