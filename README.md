@@ -453,6 +453,8 @@ NAT Gateway is a better solution.
         1. Permits you to run SQL queries on data within Firehose or Streams; queried data can be stored to S3, RedShift or ElasticSearch
 3. Shards implies Streams as Firehose has no shards.  Automatic Analysis via Lambda implies FireHose
         
+------
+
         
     
     

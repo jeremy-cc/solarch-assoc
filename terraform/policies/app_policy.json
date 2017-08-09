@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:DescribeInstances",
+        "s3:ListBucket",
+        "s3:GetObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
