@@ -11,14 +11,15 @@ resource "aws_launch_configuration" "bastion-lc" {
 
   associate_public_ip_address = true
 
+  key_name = "${aws_key_pair.access-key.key_name}"
+
   lifecycle {
     create_before_destroy = false
   }
-
 }
 
 resource "aws_autoscaling_group" "bastion-asg" {
-  launch_configuration = "${aws_launch_configuration.lc.id}"
+  launch_configuration = "${aws_launch_configuration.bastion-lc.id}"
 
   max_size = 1
   min_size = 1

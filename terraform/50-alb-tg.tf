@@ -2,6 +2,7 @@ resource "aws_alb_target_group" "tg" {
   port = 80
   protocol = "HTTP"
   vpc_id = "${aws_vpc.vpc.id}"
+  name = "web-tg"
 
   lifecycle {
     create_before_destroy = false
@@ -23,9 +24,9 @@ resource "aws_alb_target_group" "tg" {
 }
 
 resource "aws_alb" "alb" {
-  subnets = ["${aws_subnet.public.*.id}"]
+  subnets = ["${aws_subnet.app.*.id}"]
 
-  security_groups = ["${aws_security_group.sg_public_subnet.id}"]
+  security_groups = ["${aws_security_group.sg_app_subnet.id}"]
 
   name = "web-alb"
 
@@ -37,8 +38,6 @@ resource "aws_alb" "alb" {
     Name = "solarch-alb-ws"
     Env = "solarch"
   }
-
-
 }
 
 resource "aws_alb_listener" "alb-listener"{

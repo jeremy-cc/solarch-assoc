@@ -16,12 +16,12 @@ variable vpc_cidr_block {
   type="string"
 }
 
-variable public_subnets {
+variable app_subnets {
   type="list"
 }
 
-variable private_subnets {
-  type="list"
+variable bastion_subnet {
+  type="string"
 }
 
 variable "default_instance_type" {

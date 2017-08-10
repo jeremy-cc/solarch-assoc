@@ -6,14 +6,15 @@ resource "aws_launch_configuration" "lc" {
 
   name = "solarch-ws-launchconfig"
 
-  security_groups = ["${aws_security_group.sg_public_subnet.id}"]
+  security_groups = ["${aws_security_group.sg_app_subnet.id}"]
 
   user_data = "${data.template_file.template-userdata-ws.rendered}"
+
+  key_name = "${aws_key_pair.access-key.key_name}"
 
   lifecycle {
     create_before_destroy = false
   }
-
 }
 
 resource "aws_autoscaling_group" "asg"{
@@ -30,7 +31,7 @@ resource "aws_autoscaling_group" "asg"{
 
   target_group_arns = ["${aws_alb_target_group.tg.arn}"]
 
-  vpc_zone_identifier = ["${aws_subnet.public.*.id}"]
+  vpc_zone_identifier = ["${aws_subnet.app.*.id}"]
 
   lifecycle {
     create_before_destroy = false
