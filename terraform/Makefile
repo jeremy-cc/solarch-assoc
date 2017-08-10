@@ -4,8 +4,6 @@ VARFILE=
 
 include ../../creds
 
-# begin: plan
-
 clean:
 	rm -rf .terraform ./modules
 
@@ -21,6 +19,9 @@ plan: init
 
 apply: plan
 	terraform apply -var-file=./params/solarch/params.tfvars .
+
+output: plan
+	terraform output
 
 destroy: init
 	terraform plan -destroy -var-file=./params/solarch/params.tfvars .

@@ -3,6 +3,7 @@ resource "aws_vpc" "vpc" {
 
   tags {
     Env = "solarch"
+    Name = "solarch-vpc"
   }
 }
 
@@ -11,6 +12,7 @@ resource "aws_internet_gateway" "gw" {
 
   tags {
     Env = "solarch"
+    Name = "solarch-igw"
   }
 }
 

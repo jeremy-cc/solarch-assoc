@@ -7,14 +7,9 @@ variable ami_id {
   type="string"
 }
 
-variable "az1" {
-  type="string"
-  default="eu-west-1a"
-}
-
-variable "az2" {
-  type="string"
-  default="eu-west-1b"
+variable "aws_zones" {
+  type = "list"
+  default=[ "eu-west-1a","eu-west-1b","eu-west-1c"]
 }
 
 variable vpc_cidr_block {
@@ -27,4 +22,16 @@ variable public_subnets {
 
 variable private_subnets {
   type="list"
+}
+
+variable "default_instance_type" {
+  default="t2.small"
+}
+
+variable "web_asg_min" {
+  default = 2
+}
+
+variable "web_asg_max" {
+  default = 2
 }

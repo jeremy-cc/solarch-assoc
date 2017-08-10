@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+sudo yum update –y
+
+sudo yum install -y httpd24
+
+sudo chkconfig httpd on
+
+# create groups
+mkdir -p /var/www/html
+
+sudo groupadd www
+sudo usermod -a -G www ec2-user
+
+#chown to group
+sudo chown -R root:www /var/www
+
+# set modes recursively
+sudo chmod 2775 /var/www
+find /var/www -type d -exec sudo chmod 2775 {}
+
+cd /var/www/html
+
+aws s3 cp s3://s3-eu-west-1.amazonaws.com/jb-aws-solarch-static-site/* .
+
+sudo service httpd start
