@@ -5,7 +5,7 @@ resource "aws_launch_configuration" "bastion-lc" {
 
   name = "solarch-bastion-launchconfig"
 
-  security_groups = ["${aws_security_group.sg_public_subnet.id}"]
+  security_groups = ["${aws_security_group.sg_bastion.id}"]
 
   user_data = "${data.template_file.template-userdata-bastion.rendered}"
 
@@ -30,7 +30,7 @@ resource "aws_autoscaling_group" "bastion-asg" {
 
   health_check_type = "ELB"
 
-  vpc_zone_identifier = ["${aws_subnet.public.*.id}"]
+  vpc_zone_identifier = ["${aws_subnet.app.*.id}"]
 
   lifecycle {
     create_before_destroy = false

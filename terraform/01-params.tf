@@ -11,6 +11,14 @@ variable "public_access_cidrs" {
   type="list"
 }
 
+variable vpc_cidr_block {
+  type="string"
+}
+
+variable "app_subnets" {
+  type="list"
+}
+
 variable "access-key-name" {
   type="string"
 }
@@ -22,18 +30,6 @@ variable ami_id {
 variable "aws_zones" {
   type = "list"
   default=[ "eu-west-1a","eu-west-1b","eu-west-1c"]
-}
-
-variable vpc_cidr_block {
-  type="string"
-}
-
-variable app_subnets {
-  type="list"
-}
-
-variable bastion_subnet {
-  type="string"
 }
 
 variable "default_instance_type" {

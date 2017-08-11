@@ -3,7 +3,7 @@ output "alb_arn" {
 }
 
 output "public_subnet_subnet_ids" {
-  value = ["${aws_subnet.public.*.id}"]
+  value = ["${aws_subnet.app.*.id}"]
 }
 
 output "launch_config_id" {

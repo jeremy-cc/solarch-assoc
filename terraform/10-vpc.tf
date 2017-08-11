@@ -16,31 +16,12 @@ resource "aws_internet_gateway" "gw" {
   }
 }
 
-resource "aws_nat_gateway" "app-nat-gw" {
-  subnet_id = "${aws_subnet.public.id}"
-  allocation_id = "${var.nat_elastic_ip}"
-}
-
-resource "aws_route_table" "public" {
+resource "aws_route_table" "app" {
   vpc_id = "${aws_vpc.vpc.id}"
 
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = "${aws_internet_gateway.gw.id}"
-  }
-
-  tags {
-    Name        = "public-route-table"
-    Environment = "solarch"
-  }
-}
-
-resource "aws_route_table" "apps" {
-  vpc_id = "${aws_vpc.vpc.id}"
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    nat_gateway_id = "${aws_nat_gateway.app-nat-gw.id}"
   }
 
   tags {

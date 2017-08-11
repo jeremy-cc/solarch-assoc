@@ -6,16 +6,9 @@ sudo yum install -y httpd24
 
 sudo chkconfig httpd on
 
-# create groups
-mkdir -p /var/www/html
+sudo mkdir -p /var/www/html
 
-sudo groupadd www
-sudo usermod -a -G www ec2-user
-
-#chown to group
-sudo chown -R root:www /var/www
-
-# set modes recursively
-sudo chmod 2775 /var/www
+sudo echo "<html><body>OK</body></html>" > /var/www/html/health.html
+sudo echo "<html><body>INDEX</body></html>" > /var/www/html/index.html
 
 sudo service httpd start

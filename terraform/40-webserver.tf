@@ -13,7 +13,7 @@ resource "aws_launch_configuration" "lc" {
   key_name = "${var.access-key-name}"
 
   lifecycle {
-    create_before_destroy = false
+    create_before_destroy = true
   }
 }
 
@@ -34,7 +34,7 @@ resource "aws_autoscaling_group" "asg"{
   vpc_zone_identifier = ["${aws_subnet.app.*.id}"]
 
   lifecycle {
-    create_before_destroy = false
+    create_before_destroy = true
   }
 
   tag {
