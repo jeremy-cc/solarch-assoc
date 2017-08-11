@@ -3,6 +3,18 @@ variable default_region {
   default="eu-west-1"
 }
 
+variable "nat_elastic_ip" {
+  default="eipalloc-6ef6a454"
+}
+
+variable "public_access_cidrs" {
+  type="list"
+}
+
+variable "access-key-name" {
+  type="string"
+}
+
 variable ami_id {
   type="string"
 }

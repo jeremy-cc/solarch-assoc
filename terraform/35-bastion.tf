@@ -11,7 +11,7 @@ resource "aws_launch_configuration" "bastion-lc" {
 
   associate_public_ip_address = true
 
-  key_name = "${aws_key_pair.access-key.key_name}"
+  key_name = "${var.access-key-name}"
 
   lifecycle {
     create_before_destroy = false

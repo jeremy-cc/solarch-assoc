@@ -41,7 +41,7 @@ resource "aws_subnet" "public" {
 resource "aws_route_table_association" "app" {
   count          = "${length(var.app_subnets)}"
   subnet_id      = "${element(aws_subnet.app.*.id, count.index)}"
-  route_table_id = "${aws_route_table.public.id}"
+  route_table_id = "${aws_route_table.apps.id}"
 }
 
 resource "aws_route_table_association" "bastion" {

@@ -17,10 +17,5 @@ sudo chown -R root:www /var/www
 
 # set modes recursively
 sudo chmod 2775 /var/www
-find /var/www -type d -exec sudo chmod 2775 {}
-
-cd /var/www/html
-
-aws s3 cp s3://s3-eu-west-1.amazonaws.com/jb-aws-solarch-static-site/* .
 
 sudo service httpd start

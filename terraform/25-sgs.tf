@@ -30,7 +30,7 @@ resource "aws_security_group_rule" "permit_http_office" {
 
   security_group_id = "${aws_security_group.sg_public_subnet.id}"
 
-  cidr_blocks = ["217.27.253.117/32","77.97.54.59/32"]
+  cidr_blocks = ["${var.public_access_cidrs}"]
 
   type = "ingress"
 }
@@ -42,22 +42,35 @@ resource "aws_security_group_rule" "permit_ssh_office" {
 
   security_group_id = "${aws_security_group.sg_public_subnet.id}"
 
-  cidr_blocks = ["217.27.253.117/32","77.97.54.59/32"]
+  cidr_blocks = ["${var.public_access_cidrs}"]
 
   type = "ingress"
 }
 
-resource "aws_security_group_rule" "permit_http_internal" {
-  from_port = 80
-  protocol = "tcp"
-  to_port = 80
+# permit icmp traffic to internal servers
+resource "aws_security_group_rule" "permit_icmp" {
+  from_port = -1
+  to_port = -1
+
+  protocol = "icmp"
+
+  type="ingress"
 
   security_group_id = "${aws_security_group.sg_app_subnet.id}"
   source_security_group_id = "${aws_security_group.sg_public_subnet.id}"
+}
 
-//  cidr_blocks = ["${aws_subnet.app.*.cidr_block}"]
+# permit unfiltered egress from bastion
+resource "aws_security_group_rule" "unfiltered-egress-bastion" {
+  from_port = 0
+  to_port = 65535
 
-  type = "ingress"
+  protocol = "tcp"
+
+  type="egress"
+
+  security_group_id = "${aws_security_group.sg_public_subnet.id}"
+  cidr_blocks = ["0.0.0.0/0"]
 }
 
 resource "aws_security_group_rule" "permit_ssh_internal" {
@@ -68,7 +81,29 @@ resource "aws_security_group_rule" "permit_ssh_internal" {
   security_group_id = "${aws_security_group.sg_app_subnet.id}"
   source_security_group_id = "${aws_security_group.sg_public_subnet.id}"
 
-//  cidr_blocks = ["${aws_subnet.app.*.cidr_block}"]
+  type = "ingress"
+}
+
+resource "aws_security_group_rule" "permit_http_internal" {
+  from_port = 80
+  protocol = "tcp"
+  to_port = 80
+
+  security_group_id = "${aws_security_group.sg_app_subnet.id}"
+  cidr_blocks = ["0.0.0.0/0"]
 
   type = "ingress"
+}
+
+# permit unfiltered egress from bastion
+resource "aws_security_group_rule" "unfiltered-egres-apps" {
+  from_port = 0
+  to_port = 65535
+
+  protocol = "tcp"
+
+  type="egress"
+
+  security_group_id = "${aws_security_group.sg_app_subnet.id}"
+  cidr_blocks = ["0.0.0.0/0"]
 }
