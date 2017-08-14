@@ -8,6 +8,10 @@
 3. [AWS SQS FAQ](https://aws.amazon.com/sqs/faqs/)
 4. [AWS ELB Classic FAQ](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
 5. [AWS VPC Security Groups](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)  
+
+###### White Papers:
+        
+1. [AWS Security White Paper](https://d0.awsstatic.com/whitepapers/Security/AWS_Security_Best_Practices.pdf)        
         
 ------
 
@@ -182,10 +186,11 @@ and impractical at large scale
 ###### Security Groups
    
 1. Changes take place immediately
-2. Security group ingress rules are automatically mirrored to egress - unlike VPC. 
-3. All traffic is blocked by default; you can only PERMIT traffic.  You cannot DENY specific traffic.
-4. 1 SG can apply to an infinity of EC2 instances
-5. An instance can have 5 SGs bound to it
+2. New security groups permit all egress traffic by default
+3. Security group ingress rules are automatically mirrored to egress - unlike VPC. 
+4. All inbound traffic is blocked by default; you can only PERMIT traffic.  You cannot DENY specific traffic.
+5. 1 SG can apply to an infinity of EC2 instances
+6. An instance can have 5 SGs bound to it
 
 ###### ALB And Health Checks
 
@@ -289,7 +294,8 @@ goes offline.  This is especially true for public ALBs - you should have two dif
 3. Storage is self-healing
 4. Two types of replicas
    1. Aurora replicas (up to 15) - fail over automatically
-   2. Mysql Read Replicas (up to 5) - will require intervention to fail over  
+   2. Mysql Read Replicas (up to 5) - will require intervention to fail over
+5. Supports ORACLE, MySQL, SQL, Postgres     
  
 ------
 ##### AWS Networking
@@ -344,7 +350,7 @@ goes offline.  This is especially true for public ALBs - you should have two dif
 
 ###### NAT Instances and NAT Gateways
 
-1. NAT-GReleased in 2016.  Old method was NAT instances.  NAT Gateways scale automatically, no need to patch or put in SG's - AWS manage everything.
+1. NAT-G released in 2016.  Old method was NAT instances.  NAT Gateways scale automatically, no need to patch or put in SG's - AWS manage everything.
 2. NAT instances are provisioned from specific NAT Amis
 3. EC2 instances have a default Source/Dest check which checks that traffic to them is either for or from them.  A NAT instance
 needs to be able to route traffic so this setting needs to be disabled.
@@ -455,6 +461,30 @@ NAT Gateway is a better solution.
         
 ------
 
-        
-    
-    
+##### White paper overviews
+###### Security Process
+
+1. AWS is responsible for securing the underlying infrastructure - you are responsible for anything you put on top of AWS infrastructure
+2. AWS is responsible for securing services which are classed as managed services, e.g NAT Gateway.  However, customer is responsible for 
+securing Users and Roles for these services.
+3. EC2, VPC, S3 are all completely under customer control
+4. MFA recommended, CloudTrail recommended, SSL/TLS recommended
+5. Amazon Corporate network is segregated from AWS Production network.
+6. AWS mitigate against DDos, MITM, Packet sniffing, Port scanning, IP Spoofing
+7. Different instances on same physical hardware are isolated by Xen hypervisor. AWS Firewall resides in hypervisor layer.  Packets must traverse hypervisor so
+all instances on a single physical machine are isolated and have no more access than any other instance
+8. Instances run a guest operating system fully managed by customer - AWS have no access to the OS.  EC2 instances run a mandatory internal firewall with a default policy to DENY.
+9. AWS provides support for encrypted volumes on more powerful instance types.  AES-256, done on the physical hardware so data is encrypted between EC2 instances and EBS.
+10. ELB permits SSL termination on the Load Balancer
+
+
+------
+
+###### Study points
+
+1. instance sizes
+2. Platform PCI certification level - PCI DSS Level 1
+3. An existing EBS snapshot can be modified via the CLI, APIs or Console
+4. Reserved instances for EC2 and RDS
+5. Region count
+6. Support level response times based on level
