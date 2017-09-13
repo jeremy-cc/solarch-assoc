@@ -4,15 +4,27 @@
 ###### Documentation:
 
 1. [AWS S3 FAQ](https://aws.amazon.com/s3/faqs/)
+1. [AWS Cloudfront FAQ](https://aws.amazon.com/cloudfront/details/#faq)
 2. [AWS EC2 FAQ](https://aws.amazon.com/ec2/faqs/)
 3. [AWS SQS FAQ](https://aws.amazon.com/sqs/faqs/)
 4. [AWS ELB Classic FAQ](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
 5. [AWS VPC Security Groups](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)  
+6. [AWS IAM FAQ](https://aws.amazon.com/iam/faqs/)
+7. [AWS Storage Gateway](http://docs.aws.amazon.com/storagegateway/latest/userguide/storage-gateway-vtl-concepts.html)
+8. [AWS IAM identify federation](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html)
+9. [AWS Autoscaling FAQ](http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/AutoScalingBehavior.InstanceTermination.html)
 
 ###### White Papers:
         
-1. [AWS Security White Paper](https://d0.awsstatic.com/whitepapers/Security/AWS_Security_Best_Practices.pdf)        
-        
+1. [AWS Security White Paper](https://d0.awsstatic.com/whitepapers/Security/AWS_Security_Best_Practices.pdf)     
+2. [AWS Well Architected Paper](http://d0.awsstatic.com/whitepapers/architecture/AWS_Well-Architected_Framework.pdf)   
+3. [AWS Cloud Best Practices](https://d0.awsstatic.com/whitepapers/AWS_Cloud_Best_Practices.pdf)
+4. [AWS DR White Paper](http://d36cz9buwru1tt.cloudfront.net/AWS_Disaster_Recovery.pdf)
+ 
+###### Developer Documentation:
+ 
+1. [Common headers for REST requests - S3](http://docs.aws.amazon.com/AmazonS3/latest/API/RESTCommonRequestHeaders.html)
+ 
 ------
 
 ##### General notes on AWS
@@ -32,6 +44,11 @@
 2.  IAM comprises users, groups, roles and policies.  
 3.  Users can have api access (access keys) or username + password access ( console login ) - a user cannot log in
     to the console with an access key
+4.  A policy is a document that describes a collection of permissions.
+5.  A group is a logical collection of users. A user can belong to multiple groups, but a group cannot belong to other groups.
+6.  Groups can be granted permissions via policies
+7.  A role is a collection of permissions or policies, e.g S3AdminAccess, and you can have a soft max of 500 per account.
+
     
 ###### IAM Roles
 1.  Role types:
@@ -39,26 +56,26 @@
     2. AWS Service linked roles - used for bots for things like Alexa / Polly
     3. Roles for cross account - permit one account to call another account, either yours or 3rd party
     4. Roles for Identity Provider access - permit OpenID, Single sign on etc access to AWS account
-  
     
-###### S3 - read FAQ before exam.
+###### S3 - Simple Storage Service
     
-1.  S3 is a global namespace.  Bucket names must be unique across S3, not just across your account.
-2.  URL Format:  https://s3-<region>.amazonaws.com/<bucketname>
+1.  S3 is a global namespace.  Bucket names must be unique across S3, not just across your account or region.
+2.  URL Format:  https://s3-[region].amazonaws.com/[bucketname], s3://[bucketname] in the cli
 3.  Consistency model:
-    1.  Read after write consistency for PUT (new objects) 
-    2.  Eventual consistency for Overwrite or delete (has non-zero propagation time)
+    1. Read after write consistency for PUT (new objects) 
+    2. Eventual consistency for Overwrite or delete (has non-zero propagation time)
 4.  Sorts lexographically - data will stored in the same physical area on S3 and can cause performance bottlenecks.
     Consider salting file names with a random prefix for distribution
 5.  Subresources
-    1.  ACL - fine-grained permissions - at bucket level or at object level
-    2.  Torrent - supports BitTorrent protocol
+    1. ACL - fine-grained permissions - at bucket level or at object level
+    2. Torrent - supports BitTorrent protocol
 6.  SLA 99.9% but built for 99.99% - 11 9's durability guarantee
-7.  S3 - IA (Infrequently accessed) - much cheaper
-    S3 - RR (Reduced redundancy) - 99.99% availability over a year
-    S3 vs Glacier - Glacier much cheaper but takes 3 - 5 hours to access data
+7.  Flavours
+    1. S3 - IA (Infrequently accessed) - much cheaper
+    2. S3 - RR (Reduced redundancy) - 99.99% availability over a year
+    3. S3 vs Glacier - Glacier much cheaper but takes 3 - 5 hours to access data
 8.  Charged for storage, request counts, storage management, data transfer, transfer acceleration
-9.  For CRR, versioning must be on in the source and target buckets.  CRR will only replicate NEW objects.
+9.  For Cross Region Replication, versioning must be on in the source and target buckets.  CRR will only replicate NEW objects.
     Old objects will be replicated if they are updated, and their entire history will be replicated as well.
     Object deletes are replicated but Object VERSION deletes are NOT replicated.
 10. Can secure either via bucket policy or via ACLs
@@ -67,16 +84,17 @@
 ###### CloudFront
 
 1.  Edge location - point at which content will be cached 'locally'
-2.  Origin - original source of data [EC2, ALB, S3, Route53]
-3.  Distribution - CDN consisting of 2 - N Edge locations
-4.  can read from and write to Edge locations - writes are cached for the object's TTL.  You can expire early but you
+2.  Origin - original source of data (EC2, ALB, S3, Route53)
+3.  Distribution - CDN consisting of 2 to N Edge locations
+4.  You can read from and write to Edge locations - writes are cached for the object's TTL.  You can expire early but you
     will be charged.
-5.  two types - Web & RTMP     
+5.  Two types - Web & RTMP     
 6.  TTLs must be set to match periodicity of content
 7.  Use signed cookies or urls to enforce access control onto resources.
 8.  15-20 mins to provision a distribution.
 9.  Possile to customise HTTP responses; restrict or permit (white XOR blacklist) by geographical location;  
 10. Can create an *invalidation* to prevent caching of specific media objects on edge locations - billable.
+11. PCI/DSS and HIPAA compliant
 
 ###### Encryption
     
@@ -145,6 +163,8 @@ and impractical at large scale
    6.  Root volumes are deleted on termination by default but you can instruct AWS not to delete EBS.  No option
       to do so for IS.
    7. instance metadata is available at http://169.254.169.254      
+   8. Instance Store is only available on some EC2 types.  Many are EBS only.
+   9. Reserved EC2 instances can be moved between AZs
    
 ###### EC2 Placement Groups
    
@@ -161,7 +181,7 @@ and impractical at large scale
 1.  Supports NFS v4
 2.  Pay for usage, not preprovisioned size.
 3.  Scales to PB, supports thousands of concurrent NFS connections
-4.  Data is stored across AZ's
+4.  Data is stored across AZ's and EFS is available concurrently to all instances in a VPC, independent of AZ.
 5.  Block-based storage as opposed to object based (e.g S3)
 6.  Read-after-write consistency.
 7.  Good solution for sharing a usable filesystem between instances - e.g. code for websites / applications?
@@ -250,7 +270,7 @@ goes offline.  This is especially true for public ALBs - you should have two dif
    
 ###### DynamoDB
                            
-1. Is a fast NoSQL DB service
+1. Is a fast NoSQL DB service backed by SSD drives
 2. Supports documents AND key/value pairs.  Good fit for Web / Mobile / Game / IoT
 3. Stored on SSD, spread across 3 different facilities (not necessarily AZ's)  
 4. Supports Eventually Consistent Reads (1s consistency), Strongly-consistent reads (returns all data which was successfully written prior to read)                           
@@ -305,8 +325,8 @@ goes offline.  This is especially true for public ALBs - you should have two dif
 2. SOA record holds
     1. server that supplied zone data
     2. administrator contact details
-3. A record translates a domain name to an ip address.  This means you cannot route to a ELB via Route53 as ELBs do not have
-    ipv4 or ipv6 addresses, just an amazon DNS entry.  You need to use an A or AAAA ALIAS record to route to an ELB.
+3. An  A Record translates a domain name to an ip address.  This means you cannot route to a ELB via Route53 A record as ELBs do not have
+    ipv4 or ipv6 addresses, just an amazon DNS entry.  You need to use an A or AAAA ALIAS record to route to an ELB's public DNS name.
 4. TTL - cache length of DNS entry on server or resolving client.  Defaults in most places to 2 days.
 5. CNAME - can resolve one domain name to another.  CNAME cannot map to the zone apex e.g google.com.  CNAME could map
    www.google.com
@@ -347,6 +367,8 @@ goes offline.  This is especially true for public ALBs - you should have two dif
    .255 is broadcast, but broadcast isn't possible in VPC so this is simply reserved.
 6. To connect a VPC to the internet you need to create an Internet Gateway.  Only one IG can be bound to a VPC.
 7. VPC can peer to other VPCs in different accounts.  NO transitive VPC peering though. VPCs must peer directly with one another
+8. A VPC that has been set to Dedicated hosting mode cannot be reset to Default hosting mode.  Only submodes of dedicated can be selected.
+9. VPCs that peer to one another can only route vpc traffic to one another, not edge traffic.
 
 ###### NAT Instances and NAT Gateways
 
@@ -412,6 +434,7 @@ NAT Gateway is a better solution.
 8. Max Visibility Time Out is 12 hours     
 9. SQS Long Polling - attempt to get message; block and wait for message
 10. SQS maintains no application state; app needs to track this
+11. 'DelaySeconds' blocks message visibility from all consumers for the period when the message is published
     
 ###### SWF - Simple Workflow Service
 
@@ -443,7 +466,7 @@ NAT Gateway is a better solution.
 
 ###### Kinesis
 
-1. Kinesis is a sink for Streaming Data - permits analysis and creation of custom apps based on the data
+1. Kinesis is a sink for Streaming Data - permits analysis and creation of custom apps based on the data.  
 2. Kinesis core services
     1. Kinesis Streams
         1. Data stored for 24h (default) -> 7 days(max). Data is sharded.  
@@ -464,7 +487,8 @@ NAT Gateway is a better solution.
 ##### White paper overviews
 ###### Security Process
 
-1. AWS is responsible for securing the underlying infrastructure - you are responsible for anything you put on top of AWS infrastructure
+1. AWS is responsible for securing the underlying infrastructure - you are responsible for anything you put on top of AWS infrastructure. AWS responsible for
+security OF the cloud, Customer responsible for security IN the cloud.
 2. AWS is responsible for securing services which are classed as managed services, e.g NAT Gateway.  However, customer is responsible for 
 securing Users and Roles for these services.
 3. EC2, VPC, S3 are all completely under customer control
@@ -477,14 +501,108 @@ all instances on a single physical machine are isolated and have no more access 
 9. AWS provides support for encrypted volumes on more powerful instance types.  AES-256, done on the physical hardware so data is encrypted between EC2 instances and EBS.
 10. ELB permits SSL termination on the Load Balancer
 
+###### Well Architected Framework
+
+1. Pillar 1 - Security
+    1. Data protection (EBS, S3, RDS encryption in place)
+        1. Data should be classified before migration - public, sensitive, classified etc.
+        2. Encrypt wherever possible, whether at rest or in transit
+        3. Use storage systems that provide versioning, logging, and redundancy to prevent data loss.
+        4. AWS never initiates cross-region data migration; this is always initiated by a customer.
+    2. Privilege Management (IAM, MFA)
+        1. Ensures only authenticated and authorised users can access content. 
+            1. ACLS, Passwords, Roles
+        2. How is root account secured and accessed
+        3. Are roles and responsibilities of system users defined for minimum required access?
+        4. How are you limiting automated system access?
+    3. Infrastructure security (VPC, SG, ACL)
+        1. How are you enforcing network and boundary security.
+        2. How are you enforcing AWS service level security?
+    4. Detective controls
+        1. CloudTrail
+        2. CloudWatch
+        3. Config
+        4. S3 and Glacier
+        5. How are you capturing and analyzing logs
+2. Pillar 2 - Reliability
+    1. Test recovery procedures
+    2. Automatically recover from failures
+    3. Scale horizontally to increase redundancy
+    4. Stop guessing capacity.
+3. Pillar 3 - Performance Efficiency
+    1. Democratise technology choices - consume tech as a service
+    2. Go Global in minutes
+    3. Use serverless architecture
+    4. Experiment more often
+    5. Areas:
+        1. Compute
+        2. Storage
+        3. Databases
+        4. Space/Time tradeoff
+4. Cost Optimisation
+   1. Transparently attribute expenditure
+   2. Use managed services to reduce TCO
+   3. Trade capital expense for operating expense
+   4. Benefit from economies of scale
+   5. Stop spending money on Data Centre operations
+   6. Trusted Advisor
+5. Operational Excellence
+   1. Perform changes with code
+   2. Small, incremental changes
+   3. Test responses to unexpected events
+   4. Learn from operational events
+   5. Keep procedures current
+        
+    
+
 
 ------
 
+
 ###### Study points
 
-1. instance sizes
+1. instance sizes and Specific soft + hard limits in a region / AZ
 2. Platform PCI certification level - PCI DSS Level 1
 3. An existing EBS snapshot can be modified via the CLI, APIs or Console
 4. Reserved instances for EC2 and RDS
 5. Region count
 6. Support level response times based on level
+7. US STANDARD is a redundant term.
+8. It is possible to transfer reserved instances between AZs in a region.
+9. When a question mentions a stateless web tier, that implies no stateful services on the WEB tier i.e. ec2.  
+
+##### Tips
+
+###### Big Data
+
+1. To consumer Big Data - use Kinesis.  To do Business Intelligence on Big Data, use RedShift.  To do Processing, Elastic Map Reduce
+2. Redshift column size - 1024k
+
+###### EC2 - EBS vs Instance Store
+
+1. EBS is persistent, Instance Store is ephemeral
+2. EBS volumes can be detached and attached to other EC2 instances, Instance Store exists for the lifetime of the instance only.
+3. EBS volumes can be stopped.  Instance store volumes cannot be stopped
+4. EBS - long term block/based storage; Instance Store should not be used for any storage.
+
+###### OpsWorks
+
+1. Orchestration service using Chef - uses recipes to maintain infrastructure.
+2. keywords - chef, recipes, cook books
+
+###### Elastic Transcoder
+
+1. Cloud-based media conversion
+2. Pay based on content length and quality of transcoding
+ 
+###### SWF Actors 
+
+1. Workflow starter - application that initiates a SWF workflow
+2. Activity workers - applications that interact with a SWF workflow
+3. Decider - application that orchestrates a SWF workflow
+
+###### EC2 Meta Data
+
+1. curl http://169.254.169.254/latest/meta-data/
+
+
