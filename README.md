@@ -1,18 +1,25 @@
 # Solutions Architech Associate
 ##### Exam notes
 
+###### FAQs:
+
+1. [S3](https://aws.amazon.com/s3/faqs/)
+2. [Cloudfront](https://aws.amazon.com/cloudfront/details/#faq)
+3. [EC2](https://aws.amazon.com/ec2/faqs/)
+4. [SQS](https://aws.amazon.com/sqs/faqs/)
+5. [EFS](https://aws.amazon.com/efs/faq/)
+6. [EBS](https://aws.amazon.com/ebs/faqs/)
+6. [ELB Classic](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
+7. [IAM](https://aws.amazon.com/iam/faqs/)
+8. [DynamoDB](https://aws.amazon.com/dynamodb/faqs/)
+
+
 ###### Documentation:
 
-1. [AWS S3 FAQ](https://aws.amazon.com/s3/faqs/)
-1. [AWS Cloudfront FAQ](https://aws.amazon.com/cloudfront/details/#faq)
-2. [AWS EC2 FAQ](https://aws.amazon.com/ec2/faqs/)
-3. [AWS SQS FAQ](https://aws.amazon.com/sqs/faqs/)
-4. [AWS ELB Classic FAQ](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
-5. [AWS VPC Security Groups](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)  
-6. [AWS IAM FAQ](https://aws.amazon.com/iam/faqs/)
-7. [AWS Storage Gateway](http://docs.aws.amazon.com/storagegateway/latest/userguide/storage-gateway-vtl-concepts.html)
-8. [AWS IAM identify federation](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html)
-9. [AWS Autoscaling FAQ](http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/AutoScalingBehavior.InstanceTermination.html)
+1. [AWS Autoscaling FAQ](http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/AutoScalingBehavior.InstanceTermination.html)
+2. [AWS VPC Security Groups](https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html)  
+3. [AWS Storage Gateway](http://docs.aws.amazon.com/storagegateway/latest/userguide/storage-gateway-vtl-concepts.html)
+4. [AWS IAM identify federation](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_enable-console-saml.html)
 
 ###### White Papers:
         
@@ -40,7 +47,7 @@
    
 ###### IAM
    
-1.  IAM is global, not bound to a region.
+1.  IAM is a global service, not bound to a region.  
 2.  IAM comprises users, groups, roles and policies.  
 3.  Users can have api access (access keys) or username + password access ( console login ) - a user cannot log in
     to the console with an access key
@@ -48,7 +55,7 @@
 5.  A group is a logical collection of users. A user can belong to multiple groups, but a group cannot belong to other groups.
 6.  Groups can be granted permissions via policies
 7.  A role is a collection of permissions or policies, e.g S3AdminAccess, and you can have a soft max of 500 per account.
-
+8.  The term 'Owner' refers to the email address and account id of the account in which IAM policies, roles etc are created.
     
 ###### IAM Roles
 1.  Role types:
@@ -60,16 +67,18 @@
 ###### S3 - Simple Storage Service
     
 1.  S3 is a global namespace.  Bucket names must be unique across S3, not just across your account or region.
-2.  URL Format:  https://s3-[region].amazonaws.com/[bucketname], s3://[bucketname] in the cli
-3.  Consistency model:
+2.  URL Format:  https://s3-[region].amazonaws.com/[bucketname] or http://[bucketname].s3-[region].amazonaws.com, 
+s3://[bucketname] in the cli
+
+3.  S3's consistency model is:
     1. Read after write consistency for PUT (new objects) 
     2. Eventual consistency for Overwrite or delete (has non-zero propagation time)
-4.  Sorts lexographically - data will stored in the same physical area on S3 and can cause performance bottlenecks.
+4.  S3 sorts lexographically - data will stored in the same physical area on S3 and can cause performance bottlenecks.
     Consider salting file names with a random prefix for distribution
 5.  Subresources
     1. ACL - fine-grained permissions - at bucket level or at object level
     2. Torrent - supports BitTorrent protocol
-6.  SLA 99.9% but built for 99.99% - 11 9's durability guarantee
+6.  SLA availability 99.9% but built for 99.99% - 11 9's durability guarantee
 7.  Flavours
     1. S3 - IA (Infrequently accessed) - much cheaper
     2. S3 - RR (Reduced redundancy) - 99.99% availability over a year
@@ -78,7 +87,7 @@
 9.  For Cross Region Replication, versioning must be on in the source and target buckets.  CRR will only replicate NEW objects.
     Old objects will be replicated if they are updated, and their entire history will be replicated as well.
     Object deletes are replicated but Object VERSION deletes are NOT replicated.
-10. Can secure either via bucket policy or via ACLs
+10. S3 can be secured either via bucket policy or via ACLs
 11. Transfer acceleration - use Cloudfront Edge location to speed upload to backing S3 bucket.
     
 ###### CloudFront
@@ -138,10 +147,15 @@ and impractical at large scale
         
 ###### EC2 - Elastic Compute Cloud
         
-1.  Instance types : On Demand, Reserved (typically cheaper), Spot (at spot market rate), Dedicated Host (can be paid for by the hour)
+1.  There are four instance types
+	1. On Demand
+	2. Reserved (typically cheaper than on demand) - can be moved between AZ's
+	3. Spot (available at spot market rate, can be terminated at any point)
+	4. Dedicated Host (can be paid for by the hour)
 2.  Spot instances - if the instance is terminated by AWS you do not pay for a partial hour of usage; if you terminate it you will be charged for any hour the instance ran
+3.  Instance families
 
-        | instance type  | Optimised for         |
+        |  family        | Optimised for         |
         |  C             | Computation           |
         |  D             | Storage - Warehousing |
         |  F             | FPGA                  |
@@ -152,39 +166,45 @@ and impractical at large scale
         |  R             | Memory (app/db)       |
         |  X             | Memory (Spark/bigdata)|
         
-3. AMIs can be EBS backed or Instance Store (Ephemeral Storage) backed.
-   1.  You cannot attach additional IS volumes once an instance is running.
-   2.  You can only Reboot or Terminate an EC2 backed by IS.  Rebooting an instance backed by IS will not result
-      in data loss, but if the underlying Hypervisor fails you effectively lose your data.
-   3.  Instance Store used to be the only backing store; EBS is a newer feature.
-   4.  Instance Store volumes do not display in the AWS Console.  Hence Ephemeral.
-   5.  EC2 root EBS volumes are created from EBS snaphots.  EC2 root IS volumes are created from an S3 Template.
-      IS root volumes can therefore take MORE time to provision than EBS volumes.
-   6.  Root volumes are deleted on termination by default but you can instruct AWS not to delete EBS.  No option
-      to do so for IS.
-   7. instance metadata is available at http://169.254.169.254      
-   8. Instance Store is only available on some EC2 types.  Many are EBS only.
-   9. Reserved EC2 instances can be moved between AZs
+4. AMIs can be EBS backed or Instance Store (Ephemeral Storage) backed.
+   1. Instance Store-backed instances
+   	  1. You cannot attach additional IS volumes once an IS instance is running
+   	  2. You can only reboot or terminate an IS-backed instance.  Rebooting will not result in data loss; terminating will.
+   	  3. If the hypervisor under a IS-instance fails, you will lose your data. 
+   	  4. IS volumes do not display in the console.
+   	  5. IS volumes are only available on some EC2 families - many are EBS only
+   	  6. IS root volumes are created from S3 templates
+   	  7. IS volumes are deleted on instance termination - no option to preserve the data.
+   2. EBS-backed instances
+      1. EBS (Elastic Block Store) is a newer backing tech than Instance Store
+      2. EBS root volumes are created from EBS snapshots - typically faster than IS volume creation.
+      3. Root volumes are deleted on termination by default but you can instruct AWS not to delete EBS. 
+
+5. instance metadata is available at http://169.254.169.254/latest/meta-data      
    
 ###### EC2 Placement Groups
    
-1.  Permit a group of EC2 instances to be grouped logically within an AZ; share low latency 10Gbps network
-2.  Cannot span AZs
-3.  Must be uniquely named within the Account
+1.  A Placement Group permits a set of EC2 instances to be grouped logically within an AZ; 
+2.  Instances within a placement group share a low latency 10Gbps network
+2.  A Placement Group is specific to an AZ - it cannot span AZs
+3.  A Placement Group must be uniquely named within the Account
 4.  Limited to optimised instances (Compute / GPU / Storage / Memory optimised)
 5.  AWS recommend homogenous instances within a placement group
-6.  Cannot merge placement groups
-7.  Cannot move running instances into a placement group; all instances must be launched into the placement group
+6.  You cannot merge placement groups
+7.  You cannot move running instances into a placement group; all instances must be launched into the placement group
 
 ###### EFS (Elastic File System)
 
-1.  Supports NFS v4
+1.  Works via NFS v4, mounted as a standard fs by domain name.  Available for any Linux instance.
 2.  Pay for usage, not preprovisioned size.
 3.  Scales to PB, supports thousands of concurrent NFS connections
 4.  Data is stored across AZ's and EFS is available concurrently to all instances in a VPC, independent of AZ.
 5.  Block-based storage as opposed to object based (e.g S3)
 6.  Read-after-write consistency.
 7.  Good solution for sharing a usable filesystem between instances - e.g. code for websites / applications?
+8.  EFS offers high throughput for worse overall latency re EBS.
+9.  General purpose mode vs Max I/O for an EFS that is massively concurrent
+10. EFS can be mounted across a Direct Connect link.  EFS is not available over VPN.
    
 ###### EBS (Elastic Block Storage)
         
@@ -202,6 +222,7 @@ and impractical at large scale
 6. Snapshots of encrypted volumes are encrypted.  Likewise volumes restored from encrypted snapshots are encrypted.
 7. You can only share unencrypted snapshots since the encryption keys are bound to your AWS accounts.  
 8. You cannot delete an EBS snapshot if it is used as the root volume of a registered AMI.
+9. EBS offers lower overall throughput but decreased latency as opposed to EFS.
    
 ###### Security Groups
    
@@ -212,7 +233,7 @@ and impractical at large scale
 5. 1 SG can apply to an infinity of EC2 instances
 6. An instance can have 5 SGs bound to it
 
-###### ALB And Health Checks
+###### Load Balancing And Health Checks
 
 1. ALBs work at the application layer, support path based routing, and are recommended for HTTP traffic. Classic load
    balancers work at application or transport level but cannot do path-based routing.
@@ -223,6 +244,19 @@ and impractical at large scale
 6. It's advisable to have an ALB in two or more subnets across different AZ's to provide redundancy in case an AZ
 goes offline.  This is especially true for public ALBs - you should have two different public subnets in different AZs
 
+###### ASG and Autoscaling
+
+1. Default termination policy -
+   1. Find AZ with most instances and at least one unprotected instance.  
+   2. If AZs have similar instance counts, terminate the instance with the oldest launch configuration.  
+   3. If multiple instances use same launch configuration, find instance closest to next billing hour, and multiple match this kill one at random.
+2. Custom termination policies are:
+   1. Oldest Instance first
+   2. Newest instance first
+   3. Oldest Launch Configuration
+   4. Closest To next instance hour
+   5. Default
+
 ###### Cloudwatch
 
 1. Free tier updates metrics every 5 minutes; Detailed monitoring has granularity of 1 minute but is not free.
@@ -230,13 +264,16 @@ goes offline.  This is especially true for public ALBs - you should have two dif
 3. Default metrics for an EC2 instance are always CPU,Disk,Network and Status related by default.
 4. Cloudwatch Alarms - permit notification when metrics exceed preconfigured limits e.g. 80% cpu usage, min credit etc. 
 5. Cloudwatch Events - permit async rule-based triggers in response to Cloudwatch events e.g calling a Lambda function.
-6. Cloudwatch Logs - permit log analysis such as exception monitoring, httpd access logs etc.
+6. Cloudwatch Logs - permit log analysis such as exception monitoring, httpd access logs, Lambda execution logs etc.
  
 ###### Lambda
 
 1. Serverless compute service that abstracts away all lower level systems and abstractions.
 2. Can be triggered from events (e.g. Cloudwatch) or in response to HTTP requests (API Gateway)
 3. Need CORS permission - Access-Control-Allow-Origin: * 
+4. Can be run in the default VPC or bound to a specific VPC
+5. Can be allocated security groups within a VPC
+6. Good way to chain events without needing a physical instance.
   
 ###### RDS
   
@@ -251,7 +288,8 @@ goes offline.  This is especially true for public ALBs - you should have two dif
         6. Automated Backups are deleted if you delete the source RDS instance
     2. DB Snapshots
         1. DB snapshots are manual
-2. Restored Automated backups AND snapshots are always created as a NEW RDS INSTANCE with a new endpoint 
+2. Restored Automated backups AND snapshots are always created as a NEW RDS INSTANCE with a new endpoint - you cannot restore over
+   an existing database instance.
 3. Encryption at reset is supported, but you cannot encrypt an existing database; you need to create a new encrypted
    instance and migrate your unencrypted data into the encrypted instance.  Once an RDS instance is encrypted, all
    automated backups, snapshots and read replicas are encrypted as well.
@@ -272,7 +310,7 @@ goes offline.  This is especially true for public ALBs - you should have two dif
                            
 1. Is a fast NoSQL DB service backed by SSD drives
 2. Supports documents AND key/value pairs.  Good fit for Web / Mobile / Game / IoT
-3. Stored on SSD, spread across 3 different facilities (not necessarily AZ's)  
+3. Stored on SSD, spread across 3 geographically distinct facilities (not necessarily AZ's)  
 4. Supports Eventually Consistent Reads (1s consistency), Strongly-consistent reads (returns all data which was successfully written prior to read)                           
 5. Pricing by provisioned throughput capacity
     1. Write throughput, hourly fee per 10 units
@@ -280,6 +318,12 @@ goes offline.  This is especially true for public ALBs - you should have two dif
     3. Storage costs
 6.  Expensive for writes, cheap for reads.
 7.  Push-button scaling; can scale reads + writes on the fly    
+8.  Reads can be flagged as eventually consistent (higher throughput) or strongly consistent.
+9.  400k limit on record size
+10. Can scale up and down without an outage.
+11. No upper limit on storage size or throughput
+12. Global Secondary Indexes do not require unique keys and are eventually consistent.  GSI's function almost like a meta-table.
+13. If a GSI exhausts its throughput then writes to the table or tables underlying the GSI could be throttled.
     
 ###### Red Shift
  
