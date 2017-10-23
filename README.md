@@ -12,6 +12,7 @@
 6. [ELB Classic](https://aws.amazon.com/elasticloadbalancing/classicloadbalancer/faqs/)
 7. [IAM](https://aws.amazon.com/iam/faqs/)
 8. [DynamoDB](https://aws.amazon.com/dynamodb/faqs/)
+9. [ECS](https://aws.amazon.com/ecs/faqs/)
 
 
 ###### Documentation:
@@ -69,26 +70,27 @@
 1.  S3 is a global namespace.  Bucket names must be unique across S3, not just across your account or region.
 2.  URL Format:  https://s3-[region].amazonaws.com/[bucketname] or http://[bucketname].s3-[region].amazonaws.com, 
 s3://[bucketname] in the cli
+3.  Website hosting format: http://[bucketname].s3-website-[region].amazonaws.com or http://[bucket-name].s3-website.[region].amazonaws.com
 
-3.  S3's consistency model is:
+4.  S3's consistency model is:
     1. Read after write consistency for PUT (new objects) 
     2. Eventual consistency for Overwrite or delete (has non-zero propagation time)
-4.  S3 sorts lexographically - data will stored in the same physical area on S3 and can cause performance bottlenecks.
+5.  S3 sorts lexographically - data will stored in the same physical area on S3 and can cause performance bottlenecks.
     Consider salting file names with a random prefix for distribution
-5.  Subresources
+6.  Subresources
     1. ACL - fine-grained permissions - at bucket level or at object level
     2. Torrent - supports BitTorrent protocol
-6.  SLA availability 99.9% but built for 99.99% - 11 9's durability guarantee
-7.  Flavours
+7.  SLA availability 99.9% but built for 99.99% - 11 9's durability guarantee
+8.  Flavours
     1. S3 - IA (Infrequently accessed) - much cheaper
     2. S3 - RR (Reduced redundancy) - 99.99% availability over a year
     3. S3 vs Glacier - Glacier much cheaper but takes 3 - 5 hours to access data
-8.  Charged for storage, request counts, storage management, data transfer, transfer acceleration
-9.  For Cross Region Replication, versioning must be on in the source and target buckets.  CRR will only replicate NEW objects.
+9.  Charged for storage, request counts, storage management, data transfer, transfer acceleration
+10.  For Cross Region Replication, versioning must be on in the source and target buckets.  CRR will only replicate NEW objects.
     Old objects will be replicated if they are updated, and their entire history will be replicated as well.
     Object deletes are replicated but Object VERSION deletes are NOT replicated.
-10. S3 can be secured either via bucket policy or via ACLs
-11. Transfer acceleration - use Cloudfront Edge location to speed upload to backing S3 bucket.
+11. S3 can be secured either via bucket policy or via ACLs
+12. Transfer acceleration - use Cloudfront Edge location to speed upload to backing S3 bucket.
     
 ###### CloudFront
 
@@ -370,14 +372,21 @@ goes offline.  This is especially true for public ALBs - you should have two dif
     1. server that supplied zone data
     2. administrator contact details
 3. An  A Record translates a domain name to an ip address.  This means you cannot route to a ELB via Route53 A record as ELBs do not have
-    ipv4 or ipv6 addresses, just an amazon DNS entry.  You need to use an A or AAAA ALIAS record to route to an ELB's public DNS name.
-4. TTL - cache length of DNS entry on server or resolving client.  Defaults in most places to 2 days.
-5. CNAME - can resolve one domain name to another.  CNAME cannot map to the zone apex e.g google.com.  CNAME could map
+    ipv4 or ipv6 addresses, just an amazon DNS entry.  
+3. an Alias(AWS specific) record can be used to map to
+    1. an ELB's public dns hostname
+    2. a Cloudfront distribution
+    3. an S3 bucket that has been configured as a public website
+    4. an Elastic beanstalk environment.   
+    Basically an Alias maps Route53 to other AWS web-enabled services.  
+    
+    AWS Alias records are specific to AWS and are not a DNS standard.  ALIAS records can map to zone apexes, and map these
+    most commonly to ELBs. ALIAS records update transparently when for e.g. a backing ELB changes internal dns name; this
+    change is completely opaque to the outside world.
+5. TTL - cache length of DNS entry on server or resolving client.  No defaults per service
+6. CNAME - can resolve one domain name to another.  CNAME cannot map to the zone apex e.g google.com.  CNAME could map
    www.google.com
-6. ALIAS records are specific to AWS and are not a DNS standard.  ALIAS records can map to zone apexes, and map these
-  most commonly to ELBs. ALIAS records update transparently when for e.g. a backing ELB changes internal dns name; this
-  change is completely opaque to the outside world.
-7. Routing policies for ALIAS records:
+7. Routing policies for AWS Alias records:
     1. Simple (default) - most commonly used for single resource (e.g. single webserver)
     2. Weighted
         1. permit routing of traffic by weight e.g 80% to one region and 20% to another region.  Could also be used for A/B
@@ -394,6 +403,7 @@ goes offline.  This is especially true for public ALBs - you should have two dif
         1. permits traffic routing based on geographical location
         2. Geolocation can be done by Continent (e.g. Europe), by Country (e.g Germany) or by State in the case of the USA.
 8. Route 53 is a fully fledged DNS system e.g it supports MX records        
+9. Route 53 is billed on usage only.
     
 ###### VPC
 
@@ -614,6 +624,7 @@ all instances on a single physical machine are isolated and have no more access 
 7. US STANDARD is a redundant term.
 8. It is possible to transfer reserved instances between AZs in a region.
 9. When a question mentions a stateless web tier, that implies no stateful services on the WEB tier i.e. ec2.  
+10. CloudFormation - overview and usage
 
 ##### Tips
 
