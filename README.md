@@ -661,3 +661,22 @@ all instances on a single physical machine are isolated and have no more access 
 1. curl http://169.254.169.254/latest/meta-data/
 
 
+###### GOTCHAS
+
+1. No transfer cost between S3 and EC2 in the same region
+2. Instance store backed EC2 cannot be restarted without losing data
+3. S3 - RRS provides 99.99% availability, S3 - IA provides 99.9% availability
+4. Memory utilisation is a Custom cloudwatch metric, not a default metric
+5. You are charged for EIPs which are unallocated or are allocated to a stopped instance - created but not used basically
+6. T2 are EBS-only
+7. S3 static website bucket name must match the route53 domain name
+8. "Run Command" can be used to configure multiple EC2s without requiring a login.
+9. Consolidated billing has a paying account and linked accounts
+10. "Pilot Light" -> minimal, always-on DR environment.
+11. S3 billing is on request count and storage.
+12. Glacier archives can be 40Tb in size and are immutable once created
+13. A Kinesis consumer reads data from Kinesis streams
+14. Kinesis data can persist for a max of 7 days
+15. 
+
+
